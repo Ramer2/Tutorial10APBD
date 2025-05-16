@@ -51,10 +51,10 @@ app.MapGet("/api/employees", async (SampleCompanyContext context, CancellationTo
     try
     {
         var employees = await context.Employees.ToListAsync(cancellationToken);
-        var employeeDtos = new List<EmployeeDTO>();
+        var employeeDtos = new List<EmployeeDto>();
         foreach (var employee in employees)
         {
-            employeeDtos.Add(new EmployeeDTO
+            employeeDtos.Add(new EmployeeDto
             {
                 Id = employee.Id,
                 Name = employee.Name,
@@ -77,12 +77,44 @@ app.MapGet("/api/employees", async (SampleCompanyContext context, CancellationTo
 
 app.MapGet("/api/employees/{id}", async (SampleCompanyContext context, CancellationToken cancellationToken, int id) =>
 {
-    
+    try
+    {
+        var employee = await context.Employees.FindAsync(id, cancellationToken);
+
+        if (employee == null)
+        {
+            return Results.NotFound("Employee not found");
+        }
+        
+        return Results.Ok(new EmployeeDto
+        {
+            Id = employee.Id,
+            Name = employee.Name,
+            JobId = employee.JobId,
+            HireDate = employee.HireDate,
+            Salary = employee.Salary,
+            Commission = employee.Commission,
+            DepartmentId = employee.DepartmentId
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);      
+    }
 });
 
-app.MapPost("/api/employees", () =>
+app.MapPost("/api/employees", async (SampleCompanyContext context, CancellationToken cancellationToken, Employee employeeDto) =>
 {
-    
+    try
+    {
+        await context.Employees.AddAsync(employeeDto, cancellationToken);
+        await context.SaveChangesAsync();
+        return Results.Created($"/api/employees/{employeeDto.Id}", employeeDto);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 
 app.MapPut("/api/employees/{id}", (int id) =>

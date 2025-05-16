@@ -1,6 +1,6 @@
 ﻿namespace Tutorial10.RestAPI.DTOs;
 
-public class EmployeeDTO
+public class EmployeeDto
 {
     public int Id { get; set; }
 
